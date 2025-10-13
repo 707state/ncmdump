@@ -61,4 +61,5 @@ extern "C" JNIEXPORT jint Java_com_netease_ncmdump_NcmBridge_convertAll(
 
   env->ReleaseStringUTFChars(jInputFolder, inputFile);
   env->ReleaseStringUTFChars(jOutputFolder, outputFolder);
+  return converted;
 }

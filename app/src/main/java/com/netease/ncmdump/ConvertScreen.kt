@@ -1,9 +1,7 @@
 package com.netease.ncmdump
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -32,7 +30,7 @@ fun ConvertScreen() {
 
     var isConverting by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("等待选择文件夹...") }
-
+    var deleteAfterConvert by remember { mutableStateOf(false) }
     Column(modifier = Modifier.padding(16.dp)) {
         AllFilesAccessSection(context = context)
 
@@ -87,37 +85,13 @@ fun ConvertScreen() {
                 Spacer(Modifier.width(8.dp))
                 Text("选择输出文件夹")
             }
-
-//        Button(
-//            onClick = {
-//                if (inputFolder != null && outputFolder != null) {
-//                    isConverting = true
-//                    message = "正在转换..."
-//                    scope.launch {
-//                        val realInputPath = inputFolder?.let { getRealPathFromUri(it,context ) }
-//                        val realOutputPath = outputFolder?.let { getRealPathFromUri( it, context) }
-//
-//                        if (realInputPath.isNullOrEmpty() || realOutputPath.isNullOrEmpty()) {
-//                            message = "无法解析路径，请选择内部存储下的文件夹。"
-//                            return@launch
-//                        }
-//                        isConverting = true
-//                        val result = withContext(Dispatchers.IO) {
-//                            NcmBridge.convertAll(realInputPath, realOutputPath)
-//                        }
-//                        isConverting = false
-//                        message = if (result >= 0) "转换完成，共 $result 个文件" else "转换失败！"
-//                    }
-//                } else {
-//                    message = "请先选择输入/输出文件夹"
-//                }
-//            },
-//            enabled = !isConverting
-//        ) {
-//            Icon(Icons.Default.PlayArrow, contentDescription = null)
-//            Spacer(Modifier.width(8.dp))
-//            Text(if (isConverting) "转换中..." else "开始转换")
-//        }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = deleteAfterConvert,
+                    onCheckedChange = { deleteAfterConvert = it }
+                )
+                Text("转换后删除原文件")
+            }
             Button(
                 onClick = {
                     if (inputFolder != null && outputFolder != null) {
@@ -155,17 +129,12 @@ fun ConvertScreen() {
                                                 }
                                             }
                                         // 调用 C++ 转换，输出也在临时目录
-                                        val result = NcmBridge.convertAll(
+                                        val res=NcmBridge.convertAll(
                                             tmpFile.absolutePath,
                                             tmpDir.absolutePath
                                         )
-                                        if (result > 0) {
-                                            // 转换成功，删除原始 NCM 文件
-                                            try {
-                                                file.delete() // DocumentFile 的 delete() 方法删除文件
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                            }
+                                        if (deleteAfterConvert && res!=0) {
+                                            file.delete()  // 删除 DocumentFile
                                         }
                                     }
                                     // 将转换好的文件拷贝回用户选择的输出目录
@@ -214,12 +183,4 @@ fun ConvertScreen() {
             }
         }
     }
-}
-fun getRealPathFromUri(uri: Uri, context: Context): String? {
-    val docId = DocumentsContract.getTreeDocumentId(uri)
-    val parts = docId.split(":")
-    if (parts.size >= 2 && parts[0] == "primary") {
-        return "/storage/emulated/0/${parts[1]}"
-    }
-    return null
 }
