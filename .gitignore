@@ -3,15 +3,17 @@ ncmdump
 
 .vscode
 .idea
-
+/.kotlin
 build
 .gradle
-.kotlin
+
 local.properties
 gradle
 app/.cxx
 app/release
 app/build
 cmake-build-*
-
+!app/src
+!app/src/main/java
+!app/src/main/java/com/netease/ncmdump/*.kt
 vcpkg_installed
