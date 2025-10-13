@@ -5,7 +5,13 @@ ncmdump
 .idea
 
 build
-
+.gradle
+.kotlin
+local.properties
+gradle
+app/.cxx
+app/release
+app/build
 cmake-build-*
 
 vcpkg_installed
